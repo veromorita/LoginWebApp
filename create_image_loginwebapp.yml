@@ -1,0 +1,86 @@
+---
+- hosts: ansible
+  become: yes
+
+  tasks:
+  - name: Ensure Docker is installed (Ubuntu/Debian)
+    apt:
+      name: docker.io
+      state: present
+      update_cache: yes
+    when: ansible_distribution == 'Ubuntu' or ansible_distribution == 'Debian'
+
+  - name: Ensure Docker is installed (RHEL/CentOS)
+    yum:
+      name: docker
+      state: present
+      update_cache: yes
+    when: ansible_distribution == 'CentOS' or ansible_distribution == 'RedHat'
+
+  - name: Ensure Docker service is started and enabled
+    service:
+      name: docker
+      state: started
+      enabled: yes
+
+  - name: Get Docker Compose uname -s
+    command: uname -s
+    register: uname_s
+
+  - name: Get Docker Compose uname -m
+    command: uname -m
+    register: uname_m
+
+  - name: Ensure Docker Compose is installed
+    get_url:
+      url: "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-{{ uname_s.stdout }}-{{ uname_m.stdout }}"
+      dest: /usr/local/bin/docker-compose
+      mode: '0755'
+
+  - name: Verify docker-compose installation
+    command: /usr/local/bin/docker-compose --version
+
+  - name: Create Docker Compose directory
+    file:
+      path: /opt/Docker
+      state: directory
+
+  - name: Copy Dockerfile from Jenkins to Ansible server
+    fetch:
+      src: /var/lib/jenkins/workspace/RegApp_CI_Job/Dockerfile
+      dest: /opt/Docker/Dockerfile
+      flat: yes
+    delegate_to: jenkins-server
+
+  - name: Copy Docker Compose file from Jenkins to Ansible server
+    fetch:
+      src: /var/lib/jenkins/workspace/RegApp_CI_Job/docker-compose.yml
+      dest: /opt/Docker/docker-compose.yml
+      flat: yes
+    delegate_to: jenkins-server
+
+  - name: Copy SQL files from Jenkins to Ansible server
+    synchronize:
+      src: /var/lib/jenkins/workspace/RegApp_CI_Job/sql/
+      dest: /opt/Docker/sql/
+      recursive: yes
+    delegate_to: jenkins-server
+
+  - name: List contents of /opt/Docker
+    command: ls -l /opt/Docker
+    register: docker_dir_contents
+
+  - name: Check if docker-compose.yml exists
+    stat:
+      path: /opt/Docker/docker-compose.yml
+    register: compose_file
+
+  - name: Check if sql directory exists
+    stat:
+      path: /opt/Docker/sql
+    register: sql_dir
+
+  - name: Start Docker Compose services
+    command: /usr/local/bin/docker-compose up -d
+    args:
+      chdir: /opt/Docker
