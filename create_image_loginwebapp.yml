@@ -59,6 +59,13 @@
       flat: yes
     delegate_to: jenkins-server
 
+  - name: Copy WAR file from Jenkins to Ansible server
+    fetch:
+      src: /var/lib/jenkins/workspace/RegApp_CI_Job/target/LoginWebApp.war
+      dest: /opt/Docker/webapp_content/LoginWebApp.war
+      flat: yes
+    delegate_to: jenkins-server
+
   - name: Copy SQL files from Jenkins to Ansible server
     synchronize:
       src: /var/lib/jenkins/workspace/RegApp_CI_Job/sql/
@@ -79,6 +86,11 @@
     stat:
       path: /opt/Docker/sql
     register: sql_dir
+
+  - name: Build Docker image
+    command: docker build -t edisongomezs/loginwebapp:latest .
+    args:
+      chdir: /opt/Docker
 
   - name: Start Docker Compose services
     command: /usr/local/bin/docker-compose up -d
