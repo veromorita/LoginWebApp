@@ -2,16 +2,15 @@ version: '3'
 services:
   db:
     image: mysql:5.7
+    container_name: mysql
     environment:
       MYSQL_ROOT_PASSWORD: Qwerty@12345
       MYSQL_DATABASE: sample
     ports:
       - "3306:3306"
     volumes:
-      - ./sql:/docker-entrypoint-initdb.d 
-
+      - ./sql:/docker-entrypoint-initdb.d
   web:
-    build: .
     image: edisongomezs/loginwebapp:latest
     ports:
       - "8080:8080"
