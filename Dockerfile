@@ -1,7 +1,10 @@
 FROM tomcat:latest
-# Limpiar el directorio webapps si no necesitas las aplicaciones predeterminadas
+
+# Eliminar cualquier aplicación predeterminada
 RUN rm -rf /usr/local/tomcat/webapps/*
-# Copia recursivamente todos los archivos y directorios
+
+# Copiar las aplicaciones predeterminadas de nuevo
 RUN cp -R /usr/local/tomcat/webapps.dist/* /usr/local/tomcat/webapps
-# Copiar la aplicación .war al directorio de despliegue de Tomcat
-COPY webapp_content/LoginWebApp.war /usr/local/tomcat/webapps/
+
+# Copiar tu archivo WAR a la ruta correcta en Tomcat
+COPY webapp_content/LoginWebApp.war /usr/local/tomcat/webapps/LoginWebApp.war
