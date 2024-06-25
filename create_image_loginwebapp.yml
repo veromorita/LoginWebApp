@@ -54,7 +54,7 @@
 
     - name: Copy WAR file to webapp_content
       copy:
-        src: /opt/Docker/webapp_content/LoginWebApp.war
+        src: /var/lib/jenkins/workspace/LoginWebApp_CI_Job/webapp_content/LoginWebApp.war
         dest: /opt/Docker/webapp_content/LoginWebApp.war
 
     - name: Build Docker image
@@ -62,7 +62,40 @@
       args:
         chdir: /opt/Docker
 
+    - name: Tag Docker image
+      command: docker tag loginwebapp:latest edisongomezs/loginwebapp:latest
+      args:
+        chdir: /opt/Docker
+
+    - name: Push Docker image to Docker Hub
+      command: docker push edisongomezs/loginwebapp:latest
+      args:
+        chdir: /opt/Docker
+
     - name: Start Docker Compose services
       command: docker-compose up -d
       args:
         chdir: /opt/Docker
+
+    - name: Copy Deployment file from Jenkins to Ansible server
+      fetch:
+        src: /var/lib/jenkins/workspace/LoginWebApp_CI_Job/loginwebapp-deployment.yml
+        dest: /opt/Docker/loginwebapp-deployment.yml
+        flat: yes
+      delegate_to: jenkins-server
+
+    - name: Copy Service file from Jenkins to Ansible server
+      fetch:
+        src: /var/lib/jenkins/workspace/LoginWebApp_CI_Job/loginwebapp-service.yml
+        dest: /opt/Docker/loginwebapp-service.yml
+        flat: yes
+      delegate_to: jenkins-server
+
+    - name: deploy loginwebapp on kubernetes
+      command: kubectl apply -f /opt/Docker/loginwebapp-deployment.yml
+
+    - name: create service for loginwebapp
+      command: kubectl apply -f /opt/Docker/loginwebapp-service.yml
+
+    - name: update deployment with new pods if image updated in docker hub
+      command: kubectl rollout restart deployment.apps/loginwebapp-deployment

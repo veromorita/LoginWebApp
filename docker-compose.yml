@@ -1,26 +1,19 @@
 version: '3'
 services:
+  db:
+    image: mysql:5.7
+    environment:
+      MYSQL_ROOT_PASSWORD: PASS12345
+      MYSQL_DATABASE: USUARIOS
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./sql:/docker-entrypoint-initdb.d 
+
   web:
+    build: .
     image: edisongomezs/loginwebapp:latest
     ports:
       - "8080:8080"
     depends_on:
       - db
-    environment:
-      DB_HOST: db
-      DB_PORT: 3306
-      DB_NAME: mydb
-      DB_USER: user
-      DB_PASSWORD: password
-
-  db:
-    image: mysql:5.7
-    environment:
-      MYSQL_ROOT_PASSWORD: password
-      MYSQL_DATABASE: mydb
-      MYSQL_USER: user
-      MYSQL_PASSWORD: password
-    ports:
-      - "3306:3306"
-    volumes:
-      - ./sql:/docker-entrypoint-initdb.d  
