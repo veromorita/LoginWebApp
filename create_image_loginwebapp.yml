@@ -47,6 +47,16 @@
         recursive: yes
       delegate_to: jenkins-server
 
+    - name: Ensure webapp_content directory exists
+      file:
+        path: /opt/Docker/webapp_content
+        state: directory
+
+    - name: Copy WAR file to webapp_content
+      copy:
+        src: /opt/Docker/webapp_content/LoginWebApp.war
+        dest: /opt/Docker/webapp_content/LoginWebApp.war
+
     - name: Build Docker image
       command: docker build -t loginwebapp:latest .
       args:
