@@ -17,11 +17,11 @@
         flat: yes
       delegate_to: jenkins-server
 
-    - name: deploy loginwebapp on kubernetes
+    - name: Deploy loginwebapp on kubernetes
       command: kubectl apply -f /opt/Docker/loginwebapp-deployment.yml
 
-    - name: create service for loginwebapp
+    - name: Create service for loginwebapp
       command: kubectl apply -f /opt/Docker/loginwebapp-service.yml
 
-    - name: update deployment with new pods if image updated in docker hub
+    - name: Update deployment with new pods if image updated in docker hub
       command: kubectl rollout restart deployment.apps/loginwebapp-deployment
