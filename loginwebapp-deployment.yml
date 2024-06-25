@@ -2,8 +2,6 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: loginwebapp
-  labels:
-    app: loginwebapp
 spec:
   replicas: 2
   selector:
@@ -21,12 +19,12 @@ spec:
         - containerPort: 8080
         env:
         - name: DB_HOST
-          value: db
+          value: "db"
         - name: DB_PORT
           value: "3306"
         - name: DB_NAME
-          value: mydb
+          value: "mydb"
         - name: DB_USER
-          value: user
+          value: "user"
         - name: DB_PASSWORD
-          value: password
+          value: "password"
