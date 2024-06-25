@@ -47,28 +47,21 @@
 
     - name: Copy Dockerfile from Jenkins to Ansible server
       fetch:
-        src: /var/lib/jenkins/workspace/RegApp_CI_Job/Dockerfile
+        src: /var/lib/jenkins/workspace/LoginWebApp_CI_Job/Dockerfile
         dest: /opt/Docker/Dockerfile
         flat: yes
       delegate_to: jenkins-server
 
     - name: Copy Docker Compose file from Jenkins to Ansible server
       fetch:
-        src: /var/lib/jenkins/workspace/RegApp_CI_Job/docker-compose.yml
+        src: /var/lib/jenkins/workspace/LoginWebApp_CI_Job/docker-compose.yml
         dest: /opt/Docker/docker-compose.yml
-        flat: yes
-      delegate_to: jenkins-server
-
-    - name: Copy WAR file from Jenkins to Ansible server
-      fetch:
-        src: /var/lib/jenkins/workspace/RegApp_CI_Job/target/LoginWebApp.war
-        dest: /opt/Docker/LoginWebApp.war
         flat: yes
       delegate_to: jenkins-server
 
     - name: Copy SQL files from Jenkins to Ansible server
       synchronize:
-        src: /var/lib/jenkins/workspace/RegApp_CI_Job/sql/
+        src: /var/lib/jenkins/workspace/LoginWebApp_CI_Job/sql/
         dest: /opt/Docker/sql/
         recursive: yes
       delegate_to: jenkins-server
