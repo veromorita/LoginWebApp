@@ -40,45 +40,12 @@
     - name: Verify docker-compose installation
       command: /usr/local/bin/docker-compose --version
 
-    - name: Create Docker Compose directory
-      file:
-        path: /opt/Docker
-        state: directory
-
-    - name: Copy Dockerfile from Jenkins to Ansible server
-      fetch:
-        src: /var/lib/jenkins/workspace/LoginWebApp_CI_Job/Dockerfile
-        dest: /opt/Docker/Dockerfile
-        flat: yes
-      delegate_to: jenkins-server
-
-    - name: Copy Docker Compose file from Jenkins to Ansible server
-      fetch:
-        src: /var/lib/jenkins/workspace/LoginWebApp_CI_Job/docker-compose.yml
-        dest: /opt/Docker/docker-compose.yml
-        flat: yes
-      delegate_to: jenkins-server
-
     - name: Copy SQL files from Jenkins to Ansible server
       synchronize:
         src: /var/lib/jenkins/workspace/LoginWebApp_CI_Job/sql/
         dest: /opt/Docker/sql/
         recursive: yes
       delegate_to: jenkins-server
-
-    - name: List contents of /opt/Docker
-      command: ls -l /opt/Docker
-      register: docker_dir_contents
-
-    - name: Check if docker-compose.yml exists
-      stat:
-        path: /opt/Docker/docker-compose.yml
-      register: compose_file
-
-    - name: Check if sql directory exists
-      stat:
-        path: /opt/Docker/sql
-      register: sql_dir
 
     - name: Build Docker image
       command: docker build -t loginwebapp:latest .
