@@ -52,25 +52,18 @@
         path: /opt/Docker/webapp_content
         state: directory
 
-    - name: Copy WAR file to webapp_content
-      copy:
+    - name: Copy WAR file from Jenkins to Ansible server
+      synchronize:
         src: /var/lib/jenkins/workspace/LoginWebApp_CI_Job/target/LoginWebApp.war
         dest: /opt/Docker/webapp_content/LoginWebApp.war
-
-    - name: Stop existing Docker Compose services
-      command: docker-compose down
-      args:
-        chdir: /opt/Docker
+      delegate_to: jenkins-server
 
     - name: Build Docker image
       command: docker build -t loginwebapp:latest .
       args:
         chdir: /opt/Docker
 
-    - name: Push Docker image to Docker Hub
-      command: docker push loginwebapp:latest
-
     - name: Start Docker Compose services
-      command: docker-compose up --build -d
+      command: docker-compose up -d
       args:
         chdir: /opt/Docker
