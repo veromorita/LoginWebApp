@@ -3,11 +3,49 @@
   become: yes
 
   tasks:
+    - name: Ensure Docker is installed (Ubuntu/Debian)
+      apt:
+        name: docker.io
+        state: present
+        update_cache: yes
+      when: ansible_distribution == 'Ubuntu' or ansible_distribution == 'Debian'
+
+    - name: Ensure Docker is installed (RHEL/CentOS)
+      yum:
+        name: docker
+        state: present
+        update_cache: yes
+      when: ansible_distribution == 'CentOS' or ansible_distribution == 'RedHat'
+
     - name: Ensure Docker service is started and enabled
       service:
         name: docker
         state: started
         enabled: yes
+
+    - name: Get Docker Compose uname -s
+      command: uname -s
+      register: uname_s
+
+    - name: Get Docker Compose uname -m
+      command: uname -m
+      register: uname_m
+
+    - name: Ensure Docker Compose is installed
+      get_url:
+        url: "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-{{ uname_s.stdout }}-{{ uname_m.stdout }}"
+        dest: /usr/local/bin/docker-compose
+        mode: '0755'
+
+    - name: Verify docker-compose installation
+      command: /usr/local/bin/docker-compose --version
+
+    - name: Copy SQL files from Jenkins to Ansible server
+      synchronize:
+        src: /var/lib/jenkins/workspace/LoginWebApp_CI_Job/sql/
+        dest: /opt/Docker/sql/
+        recursive: yes
+      delegate_to: jenkins-server
 
     - name: Ensure webapp_content directory exists
       file:
@@ -15,24 +53,24 @@
         state: directory
 
     - name: Copy WAR file to webapp_content
-      fetch:
+      copy:
         src: /var/lib/jenkins/workspace/LoginWebApp_CI_Job/target/LoginWebApp.war
         dest: /opt/Docker/webapp_content/LoginWebApp.war
-        flat: yes
-      delegate_to: jenkins-server
+
+    - name: Stop existing Docker Compose services
+      command: docker-compose down
+      args:
+        chdir: /opt/Docker
 
     - name: Build Docker image
       command: docker build -t loginwebapp:latest .
       args:
         chdir: /opt/Docker
 
-    - name: Tag Docker image
-      command: docker tag loginwebapp:latest edisongomezs/loginwebapp:latest
-
-    - name: Push Docker image
-      command: docker push edisongomezs/loginwebapp:latest
+    - name: Push Docker image to Docker Hub
+      command: docker push loginwebapp:latest
 
     - name: Start Docker Compose services
-      command: docker-compose up -d
+      command: docker-compose up --build -d
       args:
         chdir: /opt/Docker
