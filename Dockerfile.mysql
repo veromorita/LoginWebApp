@@ -1,0 +1,7 @@
+FROM mysql:5.7
+
+# Copiar el archivo my.cnf modificado al contenedor
+COPY my.cnf /etc/mysql/my.cnf
+
+# Exponer el puerto 3306 para conexiones externas
+EXPOSE 3306
